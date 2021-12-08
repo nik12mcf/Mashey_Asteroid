@@ -62,9 +62,6 @@ def asteroid_closest_approach():
         print(asteroid)
     """
 
-    for asteroid in asteroidClosestApproaches:
-        print(asteroid)
-
     return json.dumps(asteroidClosestApproaches)
 
 
@@ -129,6 +126,13 @@ def month_closest_approaches(startDate):
 
 def nearest_misses():
     print("NEAREST MISSES")
+
+    closest_approaches = json.loads(asteroid_closest_approach())
+
+    sorted_closest_approaches = sorted(closest_approaches, key=lambda i: i['close_approach_data']['miss_distance']['kilometers'])
+
+    for asteroid in sorted_closest_approaches:
+        print(asteroid['close_approach_data'])
 
 
 if __name__ == '__main__':

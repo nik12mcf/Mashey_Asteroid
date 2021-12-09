@@ -28,9 +28,12 @@ def asteroid_closest_approach_threader(endpoint):
     data = resp.json()
 
     for index, earth_object in enumerate(data['near_earth_objects']):
+        earth_object['close_approach_data'] = list(filter(lambda a: a['orbiting_body'] == 'Earth', earth_object['close_approach_data']))
+
+    for index, earth_object in enumerate(data['near_earth_objects']):
         if len(earth_object['close_approach_data']) != 0:
             # At one point, an asteroid with no close approach data was encountered
-            # id: 2162038 and name: 162038 (1996 DH) is the exception
+            # id: 2162038 and name: 162038 (1996 DH) is an example
             minCloseApproachData = min(earth_object['close_approach_data'], key=lambda x: x['miss_distance']['kilometers'])
 
             # Remove all other close approach data except for the calculated all time closest approach.
@@ -61,7 +64,7 @@ def asteroid_closest_approach():
     totalPages = int(data['page']['total_pages'])
     # Try to iterate over every page provided by the NASA api. Begins at index 0 and ends at index total_pages - 1.
     # However, on the NASA api, index 0 corresponds to page 1 and index 1 to page 2, and so forth.
-    for i in range(33, totalPages):
+    for i in range(totalPages):
         endpoint = 'http://www.neowsapp.com/rest/v1/neo/browse?page=' + str(i) + '&size=20' + '&api_key=' + apiKey
 
         asteroidClosestApproaches += asteroid_closest_approach_threader(endpoint)
@@ -161,12 +164,18 @@ def month_closest_approaches(startDate):
     all asteroids by nearest miss and returns the first 10 entries.
 """
 def nearest_misses():
+    # Retrieve closest approach for each asteroid
     closest_approaches = json.loads(asteroid_closest_approach())
 
+    # Some asteroids do not have any close approach data so remove from list to sort properly
+    closest_approaches = list(filter(lambda a: a['close_approach_data'] != [], closest_approaches))
+
+    # Sort the list in order to retrieve the 10 smallest miss distances
     sorted_closest_approaches = sorted(closest_approaches, key=lambda i: i['close_approach_data']['miss_distance']['kilometers'])
 
-    for asteroid in sorted_closest_approaches[:10]:
-        print(asteroid)
+    print(sorted_closest_approaches[:10])
+
+    return json.dumps(sorted_closest_approaches[:10])
 
 
 if __name__ == '__main__':

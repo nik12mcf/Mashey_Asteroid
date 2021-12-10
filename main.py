@@ -18,7 +18,7 @@ apiKey = 'FmrG2O4vhIIH0uDdm1blYB13CNhWmoy9QjeKfrjm'
         The close_approach_data field is a list of all approaches for a given asteroid, but only the closest 
         approach should be returned.
         
-    Note: one asteroid had no close approach data and returned an empty list. 
+    Note: Some asteroids had no close approach data and returned an empty list. 
 """
 def asteroid_closest_approach_threader(endpoint):
     # Sending request to the NASA api
@@ -31,9 +31,9 @@ def asteroid_closest_approach_threader(endpoint):
 
     # Begin calculating the all time minimum closest approach for each asteroid.
     for index, earth_object in enumerate(data['near_earth_objects']):
+        # At one point, an asteroid with no close approach data was encountered
+        # id: 2162038 and name: 162038 (1996 DH) is an example of such an encounter, just ignore such cases
         if len(earth_object['close_approach_data']) != 0:
-            # At one point, an asteroid with no close approach data was encountered
-            # id: 2162038 and name: 162038 (1996 DH) is an example
             minCloseApproachData = min(earth_object['close_approach_data'], key=lambda x: float(x['miss_distance']['kilometers']))
 
             # Remove all other close approach data except for the calculated all time closest approach.
@@ -53,6 +53,7 @@ def asteroid_closest_approach_threader(endpoint):
 """
 @vcr.use_cassette('fixtures/vcr_cassettes/asteroids_closest_approach.yaml')
 def asteroid_closest_approach():
+    print("Determining all time closest approach for every asteroid")
     # Use this endpoint to retrieve total number of pages given that the size is 20 for each page.
     endpoint = 'https://api.nasa.gov/neo/rest/v1/neo/browse' + '?api_key=' + apiKey
     # Send initial request to NASA api.
@@ -69,11 +70,6 @@ def asteroid_closest_approach():
 
         asteroidClosestApproaches += asteroid_closest_approach_threader(endpoint)
 
-    # TESTING PURPOSES #
-    """
-    for asteroid in asteroidClosestApproaches:
-        print(asteroid)
-    """
     # Return asteroid closest approach data in form of json object
     return json.dumps(asteroidClosestApproaches)
 
@@ -101,7 +97,8 @@ def month_closest_approaches_threader(endpoint, monthClosestApproaches):
     for date in data['near_earth_objects']:
         monthClosestApproaches += data['near_earth_objects'][date]
 
-    print("Finished parsing for endpoint: ", endpoint)
+    # For Testing Purposes
+    # print("Finished parsing for endpoint: ", endpoint)
 
 
 """
@@ -121,10 +118,12 @@ def month_closest_approaches(startDate):
     # Add one month to the specified startDate
     endDate = add_month(startDate)
 
+    print("Scraping monthly closest approaches between:", startDate.strftime('%Y-%m-%d'),
+          "and", endDate.strftime('%Y-%m-%d'))
+
     # Allow for threading so that simultaneous requests can be sent to improve runtime
     threads = []
     monthClosestApproaches = []
-
     while startDate <= endDate:
         # Can only request one week worth of information from the NASA api.
         nextDate = startDate + datetime.timedelta(days=7)
@@ -133,7 +132,8 @@ def month_closest_approaches(startDate):
             nextDate = endDate
 
         # Correct formatting for endpoints using start and end dates.
-        endpoint = 'https://api.nasa.gov/neo/rest/v1/feed?start_date=' + startDate.strftime('%Y-%m-%d') + '&end_date=' + nextDate.strftime('%Y-%m-%d') + '&api_key=' + apiKey
+        endpoint = 'https://api.nasa.gov/neo/rest/v1/feed?start_date=' + startDate.strftime('%Y-%m-%d') +\
+                   '&end_date=' + nextDate.strftime('%Y-%m-%d') + '&api_key=' + apiKey
 
         # Implementation of threading for simultaneous requests
         res = threading.Thread(target=month_closest_approaches_threader, args=(endpoint, monthClosestApproaches))
@@ -150,12 +150,6 @@ def month_closest_approaches(startDate):
     # Format for correct JSON output
     result = {'element_count': len(monthClosestApproaches), 'near_monthly_approaches': monthClosestApproaches}
 
-    # TESTING #
-    """
-    for asteroid in result['near_monthly_approaches']:
-        print(asteroid)
-    """
-
     # Return result as json data
     return json.dumps(result)
 
@@ -166,6 +160,8 @@ def month_closest_approaches(startDate):
     all asteroids by nearest miss and returns the first 10 entries.
 """
 def nearest_misses():
+    print("Scraping all time top 10 nearest misses for asteroids")
+
     # Retrieve closest approach for each asteroid
     closest_approaches = json.loads(asteroid_closest_approach())
 
@@ -173,7 +169,8 @@ def nearest_misses():
     closest_approaches = list(filter(lambda a: a['close_approach_data'] != [], closest_approaches))
 
     # Sort the list in order to retrieve the 10 smallest miss distances
-    sorted_closest_approaches = sorted(closest_approaches, key=lambda i: float(i['close_approach_data']['miss_distance']['kilometers']))
+    sorted_closest_approaches = sorted(closest_approaches,
+                                       key=lambda i: float(i['close_approach_data']['miss_distance']['kilometers']))
 
     return json.dumps(sorted_closest_approaches[:10])
 

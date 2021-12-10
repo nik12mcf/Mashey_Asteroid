@@ -1,5 +1,3 @@
-from flask import Flask
-from flask import request
 import requests
 import json
 import threading
@@ -27,14 +25,16 @@ def asteroid_closest_approach_threader(endpoint):
     resp = requests.get(url=endpoint)
     data = resp.json()
 
+    # Must filter out closest approaches to orbiting bodies apart from the earth for each asteroid.
     for index, earth_object in enumerate(data['near_earth_objects']):
         earth_object['close_approach_data'] = list(filter(lambda a: a['orbiting_body'] == 'Earth', earth_object['close_approach_data']))
 
+    # Begin calculating the all time minimum closest approach for each asteroid.
     for index, earth_object in enumerate(data['near_earth_objects']):
         if len(earth_object['close_approach_data']) != 0:
             # At one point, an asteroid with no close approach data was encountered
             # id: 2162038 and name: 162038 (1996 DH) is an example
-            minCloseApproachData = min(earth_object['close_approach_data'], key=lambda x: x['miss_distance']['kilometers'])
+            minCloseApproachData = min(earth_object['close_approach_data'], key=lambda x: float(x['miss_distance']['kilometers']))
 
             # Remove all other close approach data except for the calculated all time closest approach.
             data['near_earth_objects'][index]['close_approach_data'] = minCloseApproachData
@@ -91,7 +91,8 @@ def add_month(startDate):
 
 
 """
-    Helper function for month_closest_approaches to allow for multithreading.
+    Helper function for month_closest_approaches to allow for multithreading. No need to filter
+    orbiting objects since all are relative to earth using this endpoint.
 """
 def month_closest_approaches_threader(endpoint, monthClosestApproaches):
     resp = requests.get(url=endpoint)
@@ -123,6 +124,7 @@ def month_closest_approaches(startDate):
     # Allow for threading so that simultaneous requests can be sent to improve runtime
     threads = []
     monthClosestApproaches = []
+
     while startDate <= endDate:
         # Can only request one week worth of information from the NASA api.
         nextDate = startDate + datetime.timedelta(days=7)
@@ -171,9 +173,7 @@ def nearest_misses():
     closest_approaches = list(filter(lambda a: a['close_approach_data'] != [], closest_approaches))
 
     # Sort the list in order to retrieve the 10 smallest miss distances
-    sorted_closest_approaches = sorted(closest_approaches, key=lambda i: i['close_approach_data']['miss_distance']['kilometers'])
-
-    print(sorted_closest_approaches[:10])
+    sorted_closest_approaches = sorted(closest_approaches, key=lambda i: float(i['close_approach_data']['miss_distance']['kilometers']))
 
     return json.dumps(sorted_closest_approaches[:10])
 
@@ -182,6 +182,6 @@ if __name__ == '__main__':
     asteroid_closest_approach()
 
     # DATE FORMAT YEAR-MONTH-DAY
-    # month_closest_approaches('2001-01-03')
+    #month_closest_approaches('2001-01-03')
 
-    # nearest_misses()
+    #nearest_misses()

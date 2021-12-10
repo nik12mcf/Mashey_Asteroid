@@ -4,7 +4,8 @@ import os
 
 
 """
-    Test function asteroid_closest_approach
+    Test function asteroid_closest_approach. Ensure requested asteroid templates are available in
+    the correct_asteroid_template directory.
 """
 def test_asteroid_closest_approach():
     print("Testing asteroid_closest_approach function")
@@ -19,20 +20,31 @@ def test_asteroid_closest_approach():
     # Determined closest miss in kilometers through manual calculations for random asteroid ids.
     asteroidDict_ID_Dist = {'2000433': '22359243.131520978', '3976533': '326831.059243609',
                             '3160848': '4599569.231988418', '3772995': '2624615.028123373'}
+    # Determined closest approach date for random asteroid ids.
     asteroidDict_ID_Date = {'3976533': '2020-01-02', '3160848': '2070-03-11', '3772995': '1968-04-04'}
+    # Manually generated templates for certain asteroid ids to ensure json syntax matches with what is scraped
+    asteroidTemplates = ['2000433', '54225732', '2004660']
 
-    # Corroborate that manually calculated asteroid miss distances are equal to scraped asteroid miss distances
+    # Corroborate that manually calculated asteroid miss distances are equal to scraped asteroid miss distances.
+    # Corroborate that closest approach dates match with scraped closest approach dates.
+    # Corroborate that syntax for scraped json objects match with what should be returned.
     for asteroid in asteroids:
         if asteroid['id'] in asteroidDict_ID_Dist:
             assert(asteroidDict_ID_Dist[asteroid['id']] == asteroid['close_approach_data']['miss_distance']['kilometers'])
         if asteroid['id'] in asteroidDict_ID_Date:
             assert(asteroidDict_ID_Date[asteroid['id']] == asteroid['close_approach_data']['close_approach_date'])
+        if asteroid['id'] in asteroidTemplates:
+            # Retrieve correct templating
+            correctAsteroidTemplate = json.load(open('correct_asteroid_templates/asteroid_' + asteroid['id'] + '.txt'))
+
+            assert asteroid == correctAsteroidTemplate
 
     print("Successfully tested asteroid_closest_approach function")
 
 
 """
-    Test the month_closest_approaches function
+    Test the month_closest_approaches function. Ensure requested asteroid templates are available in
+    the correct_asteroid_template directory.
 """
 def test_month_closest_approaches():
     print("Testing month_closest_approaches function")
@@ -88,11 +100,49 @@ def test_month_closest_approaches():
     for key in validAsteroids:
         assert(validAsteroids[key])
 
+    """
+        Third test from Jan 31 to Feb 29. Uses manually generated data stored in the form
+        of dictionaries to cross examine scraped data. Testing change of days within a month 
+        as well as leap year.
+    """
+    response = json.loads(main.month_closest_approaches('2000-01-31'))
+
+    # List of asteroids that should be scraped
+    validAsteroids = {'2509505': False, '3991578': False, '3177204': False, '2172718': False}
+    # Dictionary with ID as key and Date as value
+    asteroidDict_ID_Date = {'2509505': '2000-02-06', '2172718': '2000-02-29'}
+    # Dictionary with ID as key and Miss Distance (km) as value
+    asteroidDict_ID_Dist = {'2509505': '23461202.105321074', '2172718': '73457065.458327507'}
+    # Asteroids with correct manually determined JSON syntax
+    asteroidTemplates = ['2509505', '2172718']
+
+    # Check that correct number of asteroids have been scraped.
+    assert response['element_count'] == 221
+
+    # Check that certain asteroids have been scraped and that certain IDs have their respective date and distance.
+    for asteroid in response['near_monthly_approaches']:
+        # Check 0 index only since close_approach data will only have on entry
+        if asteroid['id'] in asteroidDict_ID_Date:
+            assert asteroid['close_approach_data'][0]['close_approach_date'] == asteroidDict_ID_Date[asteroid['id']]
+        if asteroid['id'] in asteroidDict_ID_Dist:
+            assert asteroid['close_approach_data'][0]['miss_distance']['kilometers'] == asteroidDict_ID_Dist[
+                asteroid['id']]
+        if asteroid['id'] in validAsteroids:
+            validAsteroids[asteroid['id']] = True
+        if asteroid['id'] in asteroidTemplates:
+            correctAsteroidTemplate = json.load(open('correct_asteroid_templates/asteroid_' + asteroid['id'] + '.txt'))
+
+            # Check for correct JSON response syntax
+            assert asteroid == correctAsteroidTemplate
+
+    for key in validAsteroids:
+        assert(validAsteroids[key])
+
     print("Successfully tested month_closest_approaches function")
 
 
 """
-    Used the https://cneos.jpl.nasa.gov/ca/ to find the all time nearest misses for asteroids.
+    Used the https://cneos.jpl.nasa.gov/ca/ to find the all time nearest misses for asteroids manually.
     Then used that database to corroborate scraped data from program.
 """
 def test_nearest_misses():
@@ -138,7 +188,6 @@ def test_nearest_misses():
         assert(asteroidDict_ID_Date[asteroids[index]['id']] == asteroids[index]['close_approach_data']['close_approach_date'])
 
     print("Successfully tested nearest_misses function")
-
 
 test_asteroid_closest_approach()
 

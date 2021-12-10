@@ -43,6 +43,8 @@ Ensure that a folder titled "testing_data" is within the same directory as the t
 
 Ensure that the correct_asteroid_templates folder is downloaded and in the same directory as the python testing file. This allows for corroboration of the syntax for scraped JSON objects.
 
+When testing, NASA may have updated their database, so some of the manunal calculations may have changed and result in assertion errors between scraped and expected output.
+
 ## Notes and Further Considerations
 Multithreading can be used to speed up the process for sending requests to the NASA api. This was implemented at first but after reaching the api limit and recieving HTTP Error 429, I decided for sequential execution and using vcr casettes to record requests.
 

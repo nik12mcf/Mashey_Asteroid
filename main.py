@@ -31,15 +31,18 @@ def asteroid_closest_approach_threader(endpoint):
 
     # Begin calculating the all time minimum closest approach for each asteroid.
     for index, earth_object in enumerate(data['near_earth_objects']):
-        # At one point, an asteroid with no close approach data was encountered
-        # id: 2162038 and name: 162038 (1996 DH) is an example of such an encounter, just ignore such cases
+        """
+            At certain points, asteroids with no close approach data are encountered. During such case
+            just ignore and leave approach data blank but keep this in mind for other function implementation.
+            
+            id: 2162038 and name: 162038 (1996 DH) is an example 
+        """
         if len(earth_object['close_approach_data']) != 0:
+            # Find all time minimum closest approach
             minCloseApproachData = min(earth_object['close_approach_data'], key=lambda x: float(x['miss_distance']['kilometers']))
 
             # Remove all other close approach data except for the calculated all time closest approach.
             data['near_earth_objects'][index]['close_approach_data'] = minCloseApproachData
-
-    print("Successfully traversed endpoint: ", endpoint)
 
     return data['near_earth_objects']
 
@@ -96,9 +99,6 @@ def month_closest_approaches_threader(endpoint, monthClosestApproaches):
 
     for date in data['near_earth_objects']:
         monthClosestApproaches += data['near_earth_objects'][date]
-
-    # For Testing Purposes
-    # print("Finished parsing for endpoint: ", endpoint)
 
 
 """
@@ -173,12 +173,3 @@ def nearest_misses():
                                        key=lambda i: float(i['close_approach_data']['miss_distance']['kilometers']))
 
     return json.dumps(sorted_closest_approaches[:10])
-
-
-if __name__ == '__main__':
-    asteroid_closest_approach()
-
-    # DATE FORMAT YEAR-MONTH-DAY
-    #month_closest_approaches('2001-01-03')
-
-    #nearest_misses()

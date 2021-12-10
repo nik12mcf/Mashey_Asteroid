@@ -3,10 +3,13 @@ import json
 import os
 
 
+"""
+    Test function asteroid_closest_approach
+"""
 def test_asteroid_closest_approach():
     print("Testing asteroid_closest_approach function")
 
-    # Save data once scraped for faster testing. Saves to the test_data folder
+    # Save data once scraped for easier test case testing. Saves to the test_data folder
     if os.path.exists('testing_data/asteroid_closest_approach.txt') == False:
         with open('testing_data/asteroid_closest_approach.txt', 'w') as outfile:
             json.dump(json.loads(main.asteroid_closest_approach()), outfile)
@@ -15,15 +18,11 @@ def test_asteroid_closest_approach():
 
     # Determined closest miss in kilometers through manual calculations for random asteroid ids.
     asteroidDict_ID_Dist = {'2000433': '22359243.131520978', '3976533': '326831.059243609',
-                            '3160848': '4599569.231988418'}
-    asteroidDict_ID_Date = {'3976533': '2020-01-02', '3160848': '2070-03-11'}
+                            '3160848': '4599569.231988418', '3772995': '2624615.028123373'}
+    asteroidDict_ID_Date = {'3976533': '2020-01-02', '3160848': '2070-03-11', '3772995': '1968-04-04'}
 
     # Corroborate that manually calculated asteroid miss distances are equal to scraped asteroid miss distances
     for asteroid in asteroids:
-        if asteroid['id'] == '3160848':
-            print(asteroid)
-            #exit(1)
-
         if asteroid['id'] in asteroidDict_ID_Dist:
             assert(asteroidDict_ID_Dist[asteroid['id']] == asteroid['close_approach_data']['miss_distance']['kilometers'])
         if asteroid['id'] in asteroidDict_ID_Date:
@@ -33,7 +32,7 @@ def test_asteroid_closest_approach():
 
 
 """
-    Test the month closest approaches function
+    Test the month_closest_approaches function
 """
 def test_month_closest_approaches():
     print("Testing month_closest_approaches function")
@@ -99,19 +98,12 @@ def test_month_closest_approaches():
 def test_nearest_misses():
     print("Testing nearest_misses function")
 
-    # Save data once scraped for faster testing. Saves to the test_data folder
+    # Save data once scraped for easier test case creation. Saves to the test_data folder
     if os.path.exists('testing_data/nearest_misses.txt') == False:
         with open('testing_data/nearest_misses.txt', 'w') as outfile:
             json.dump(json.loads(main.nearest_misses()), outfile)
 
     asteroids = json.load(open('testing_data/nearest_misses.txt'))
-
-    #asteroids = json.loads(main.nearest_misses())
-
-    #with open('testing_data/nearest_misses.txt', 'w') as outfile:
-    #    json.dump(asteroids, outfile)
-
-    #asteroids = json.load(open('testing_data/nearest_misses.txt'))
 
     # Ordered top ten nearest misses tuple with id and miss distance in kilometers
     asteroidDict_ID_Dist = [('54087809', '6745.532515957'),
@@ -150,6 +142,6 @@ def test_nearest_misses():
 
 test_asteroid_closest_approach()
 
-#test_month_closest_approaches()
+test_month_closest_approaches()
 
-#test_nearest_misses()
+test_nearest_misses()

@@ -23,22 +23,30 @@ Packages Used:
 
 ## Usage
 
-For testing, install pytest and run "pytest test_mashey.py". Make sure to have a testing_data folder in the same directory so that the scraped data can be saved locally.
+For testing, install pytest and run "pytest test_mashey.py".
 
-Simply call asteroid_closest_approach and nearest_misses to retrieve JSON data. 
+Simply call asteroid_closest_approach, month_closest_approaches, and nearest_misses to retrieve JSON data. 
 
-nearest_misses function returns JSON data that includes the 10 nearest misses, historical or expected, of asteroids impacting Earth. Asteroid data is returned with all time nearest miss in close_approach_data, but excludes any additional close_approach_data (relative to Earth).
+nearest_misses function returns JSON data that includes the 10 nearest misses, historical or expected, of asteroids impacting Earth. Asteroid data is returned with all time nearest miss in close_approach_data, but excluding any additional close_approach_data.
 
-asteroid_closest_approach function returns JSON data that includes each asteroid and its all time closest approach (relative to Earth) in the close approach data.
+asteroid_closest_approach function returns JSON data that includes each asteroid and only its all time closest approach in the close approach data to Earth.
 
+month_closest_approaches must be called with input, which is the start date for the calendar month, and retrieves the closest approaches for the calendar month. The start date is of the form 'YYYY-MM-DD'.
+
+example: month_closest_approaches('2000-01-31')
+                                               
 ## Warnings
 
-If running test cases, some files that are created during function calls may require lots of disk space. Scraped data for asteroid_closest_approach and nearest_misses functions are stored locally to avoid re-calling both functions. This helped with developing test cases by avoiding these calls after an initial run.
+If running test cases, some created files for easier test case generation may require lots of disk space. Scraped data for asteroid_closest_approach and nearest_misses functions are stored locally to avoid re-calling both functions. This helped with developing test cases by avoiding these calls after the first time.
+
+Ensure that a folder titled "testing_data" is within the same directory as the testing file so that scraped data can be saved locally for easier test case automation.
+
+Ensure that the correct_asteroid_templates folder is downloaded and in the same directory as the python testing file. This allows for corroboration of the syntax for scraped JSON objects.
 
 ## Notes and Further Considerations
-Multithreading can be used to speed up the process for sending requests to the NASA api. This was implemented at first but after reaching the api limit and recieving HTTP Error 429, I decided for sequential execution and vcr casettes to record requests.
+Multithreading can be used to speed up the process for sending requests to the NASA api. This was implemented at first but after reaching the api limit and recieving HTTP Error 429, I decided for sequential execution and using vcr casettes to record requests.
 
-To resolve the HTTP Error 429 a proxy server can be used wherein a bad request triggers the rotation to another ip address. I have had this error before in my data scraping programs and I utilized chromedriver and configured json files to accept premium proxies that require authentification. An example of this authentification is provided below which I have coded and used for my own benefit in other projects. This is just for consideration.
+To resolve the HTTP Error 429 a proxy server can be used wherein a bad request triggers the rotation to another ip address. I have had this error before in my data scraping programs and I utilized chromedriver and configured json files to accept premium proxies that require authentification. However, this requires the use of 3rd party packages which the assignment forbids. An example of this authentification is provided below which I have coded and used for my own benefit in other projects. This is just for consideration.
 ```python
 """
     Set up proxy authentication to generate a special file and upload it to chromedriver dynamically 

@@ -23,7 +23,7 @@ Packages Used:
 
 ## Usage
 
-For testing, install pytest and run "pytest test_mashey.py". 
+For testing, install pytest and run "pytest test_mashey.py". Make sure to have a testing_data folder in the same directory so that the scraped data can be saved locally.
 
 Simply call asteroid_closest_approach and nearest_misses to retrieve JSON data. 
 
